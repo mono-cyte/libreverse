@@ -1,4 +1,23 @@
 #include <ProcMonitor.h>
+#include <tlhelp32.h>
+
+PROCESSENTRY32 ProcMonitor::findProcessEntry(bool (*matchFunc)(const PROCESSENTRY32&, const void*), const void* param) {
+	PROCESSENTRY32 pe32 = {sizeof(PROCESSENTRY32)};
+	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+	if (hSnapshot != INVALID_HANDLE_VALUE) {
+		if (Process32First(hSnapshot, &pe32)) {
+			do {
+				if (matchFunc(pe32, param)) {
+					CloseHandle(hSnapshot);
+					return pe32;
+				}
+			} while (Process32Next(hSnapshot, &pe32));
+		}
+		CloseHandle(hSnapshot);
+	}
+	return pe32; // 返回空结构体表示未找到
+}
 
 LPCTSTR ProcMonitor::getFileName(LPCTSTR szDllPath) {
 	LPCTSTR lastSlash = strrchr(szDllPath, '\\');
@@ -14,49 +33,81 @@ LPCTSTR ProcMonitor::getFileName(LPCTSTR szDllPath) {
 }
 
 DWORD ProcMonitor::getPID(LPCTSTR szProcessName) {
-	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-
-	PROCESSENTRY32 pe;
-	pe.dwSize = sizeof(PROCESSENTRY32);
-
-	do {
-		if (stricmp(pe.szExeFile, szProcessName) == 0) {
-			CloseHandle(hSnapshot);
-			return pe.th32ProcessID;
-		}
-	} while (Process32Next(hSnapshot, &pe));
-
-	CloseHandle(hSnapshot);
-	printf("LastError: %lu", GetLastError());
-	printf("Failed to find process %s", szProcessName);
-	throw;
+	PROCESSENTRY32 pe32 = getProcessEntry(szProcessName);
+	if (pe32.th32ProcessID == 0) {
+		return 0; // 未找到进程
+	}
+	return pe32.th32ProcessID;
 }
 
-char* ProcMonitor::getPName(DWORD dwPID) {
-	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-
-	PROCESSENTRY32 pe;
-	pe.dwSize = sizeof(PROCESSENTRY32);
-
-	char* PName = nullptr;
-
-	do {
-		if (pe.th32ProcessID == dwPID) {
-			CloseHandle(hSnapshot);
-			PName = strdup(pe.szExeFile);
-			break;
-		}
-	} while (Process32Next(hSnapshot, &pe));
-
-	CloseHandle(hSnapshot);
-
-	if (PName == NULL) {
-		printf("LastError: %lu\n", GetLastError());
-		printf("Failed to find process name %lu", dwPID);
-		throw;
+std::string ProcMonitor::getPName(DWORD dwPID) {
+	PROCESSENTRY32 pe32 = getProcessEntry(dwPID);
+	if (pe32.th32ProcessID == 0) {
+		return 0; // 未找到进程
 	}
+	return std::string(pe32.szExeFile);
+}
 
-	return PName;
+PROCESSENTRY32 ProcMonitor::getProcessEntry(const char* processName) {
+	// PROCESSENTRY32 pe32;
+	// pe32.dwSize = sizeof(PROCESSENTRY32); // 必须初始化结构体大小
+
+	// // 创建进程快照
+	// HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	// if (hSnapshot == INVALID_HANDLE_VALUE) {
+	// 	// 错误处理
+	// 	return pe32; // 返回空结构体
+	// }
+
+	// // 枚举进程
+	// if (Process32First(hSnapshot, &pe32)) {
+	// 	do {
+	// 		if (strcmp(pe32.szExeFile, processName) == 0) {
+	// 			CloseHandle(hSnapshot);
+	// 			return pe32; // 找到目标进程
+	// 		}
+	// 	} while (Process32Next(hSnapshot, &pe32));
+	// }
+
+	// CloseHandle(hSnapshot);
+	// return pe32; // 未找到则返回空结构体
+	bool (*matcher)(const PROCESSENTRY32&, const void*) = [](const PROCESSENTRY32& pe32, const void* param) -> bool {
+		return strcmp(pe32.szExeFile, (LPCTSTR)param) == 0;
+	};
+
+	return findProcessEntry(matcher, processName);
+}
+
+PROCESSENTRY32 ProcMonitor::getProcessEntry(DWORD dwPID) {
+	// PROCESSENTRY32 pe32;
+	// pe32.dwSize = sizeof(PROCESSENTRY32); // 必须初始化结构体大小
+
+	// // 创建进程快照
+	// HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	// if (hSnapshot == INVALID_HANDLE_VALUE) {
+	// 	// 错误处理
+	// 	return pe32; // 返回空结构体
+	// }
+
+	// // 枚举进程
+	// if (Process32First(hSnapshot, &pe32)) {
+	// 	do {
+	// 		if (pe32.th32ProcessID == dwPID) {
+	// 			CloseHandle(hSnapshot);
+	// 			return pe32; // 找到目标进程
+	// 		}
+	// 	} while (Process32Next(hSnapshot, &pe32));
+	// }
+
+	// CloseHandle(hSnapshot);
+	// return pe32; // 未找到则返回空结构体
+
+	// 2. 声明函数指针变量
+	bool (*matcher)(const PROCESSENTRY32&, const void*) = [](const PROCESSENTRY32& pe, const void* param) -> bool {
+		return pe.th32ProcessID == *(const DWORD*)param;
+	};
+
+	return findProcessEntry(matcher, &dwPID);
 }
 
 HANDLE ProcMonitor::getProcess(DWORD dwPID) {

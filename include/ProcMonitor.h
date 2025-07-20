@@ -7,12 +7,20 @@
 #include <string>
 
 class ProcMonitor {
+  private:
+	// 通用进程查找模板
+	static PROCESSENTRY32 findProcessEntry(bool (*matchFunc)(const PROCESSENTRY32&, const void*), const void* param);
+
   public:
 	static LPCTSTR getFileName(LPCTSTR szDllPath);
 
 	static DWORD getPID(LPCTSTR szProcessName);
 
-	static char* getPName(DWORD dwPID);
+	static std::string getPName(DWORD dwPID);
+
+	static PROCESSENTRY32 getProcessEntry(const char* processName);
+
+	static PROCESSENTRY32 getProcessEntry(DWORD dwPID);
 
 	/**
 	 * @brief 获取进程句柄

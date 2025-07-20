@@ -14,7 +14,7 @@ class DLLMonitor {
 	 * @param szDllPath 	sw = string zero, 以\0结尾的字符串
 	 * @return DWORD 成功返回 0，失败返回错误码
 	 */
-	DWORD inject(HANDLE hProcess, HMODULE hKERNEL32, LPCTSTR szDllPath);
+	static DWORD inject(HANDLE hProcess, HMODULE hKERNEL32, LPCTSTR szDllPath);
 
 	/**
 	 * @brief inject升级版, 自动解析
@@ -22,7 +22,7 @@ class DLLMonitor {
 	 * @param szDllPath DLL路径
 	 * @return DWORD 成功返回 0，失败返回错误码
 	 */
-	DWORD inject(PROCESSENTRY32 pe32, LPCTSTR szDllPath);
+	static DWORD inject(PROCESSENTRY32 pe32, LPCTSTR szDllPath);
 
 	/**
 	 * @brief 创建远程线程, 以在目标进程中卸载DLL, 需要手动寻找模块句柄
@@ -30,7 +30,7 @@ class DLLMonitor {
 	 * @param injectedModule 	已注入的模块句柄
 	 * @return DWORD 成功返回 0，失败返回错误码
 	 */
-	DWORD release(HANDLE hProcess, HMODULE hKERNEL32, LPVOID injectedModule);
+	static DWORD release(HANDLE hProcess, HMODULE hKERNEL32, LPVOID injectedModule);
 
 	/**
 	 * @brief release升级版, 自动解析
@@ -38,7 +38,7 @@ class DLLMonitor {
 	 * @param injectedModule    已注入的模块句柄
 	 * @return DWORD 		    成功返回 0，失败返回错误码
 	 */
-	DWORD release(PROCESSENTRY32 pe32, LPVOID injectedModule);
+	static DWORD release(PROCESSENTRY32 pe32, LPVOID injectedModule);
 };
 
 #endif // DLLMONITOR_H
