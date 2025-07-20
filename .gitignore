@@ -1,0 +1,5 @@
+/.clang-format
+/.vscode
+/.xmake
+/build
+/windows
