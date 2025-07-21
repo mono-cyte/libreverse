@@ -1,0 +1,11 @@
+# libreverse
+
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) <!-- 可选：许可证徽章 -->
+
+> 用于 windows 平台学习逆向的库
+
+## 使用注意
+
+此库只用于 Windows 平台, 应当根据需求修改 xmake 的编译架构
+
+编译链接库应当 vs 工具链, 使用 mingw 工具链会导致各种问题

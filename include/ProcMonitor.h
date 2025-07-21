@@ -23,11 +23,15 @@ class ProcMonitor {
 	static PROCESSENTRY32 getProcessEntry(DWORD dwPID);
 
 	/**
-	 * @brief 获取进程句柄
+	 * @brief 获取进程句柄, 调用后必须关闭
 	 * @param DWORD dwPID 进程ID
 	 * @return HANDLE 进程句柄
 	 */
-	static HANDLE getProcess(DWORD dwPID);
+	static HANDLE openProcess(DWORD dwPID);
+
+	static HANDLE openProcess(PROCESSENTRY32 pe32);
+
+	static int closeProcess(HANDLE hProcess);
 
 	/**
 	 * @brief 通过 hashtable 获取所有模块名称&基址
@@ -36,7 +40,7 @@ class ProcMonitor {
 	 * @param LPCTSTR dllName 模块名称
 	 * @return 模块名称和基址的映射表(提高查找效率)
 	 */
-	static std::unordered_map<std::string, LPVOID> getModules(HANDLE hProcess, MODULEENTRY32* me32);
+	static std::unordered_map<std::string, LPVOID> getModules(HANDLE hProcess);
 
 	/**
 	 * @brief

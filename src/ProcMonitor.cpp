@@ -2,7 +2,9 @@
 #include <tlhelp32.h>
 
 PROCESSENTRY32 ProcMonitor::findProcessEntry(bool (*matchFunc)(const PROCESSENTRY32&, const void*), const void* param) {
-	PROCESSENTRY32 pe32 = {sizeof(PROCESSENTRY32)};
+	PROCESSENTRY32 pe32 = {};
+	pe32.dwSize = sizeof(PROCESSENTRY32); // 必须初始化结构体大小
+
 	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
 	if (hSnapshot != INVALID_HANDLE_VALUE) {
@@ -72,7 +74,8 @@ PROCESSENTRY32 ProcMonitor::getProcessEntry(const char* processName) {
 	// CloseHandle(hSnapshot);
 	// return pe32; // 未找到则返回空结构体
 	bool (*matcher)(const PROCESSENTRY32&, const void*) = [](const PROCESSENTRY32& pe32, const void* param) -> bool {
-		return strcmp(pe32.szExeFile, (LPCTSTR)param) == 0;
+		// return strcmp(pe32.szExeFile, (LPCTSTR)param) == 0;
+		return _stricmp(pe32.szExeFile, (char*)param) == 0;
 	};
 
 	return findProcessEntry(matcher, processName);
@@ -103,14 +106,17 @@ PROCESSENTRY32 ProcMonitor::getProcessEntry(DWORD dwPID) {
 	// return pe32; // 未找到则返回空结构体
 
 	// 2. 声明函数指针变量
-	bool (*matcher)(const PROCESSENTRY32&, const void*) = [](const PROCESSENTRY32& pe, const void* param) -> bool {
-		return pe.th32ProcessID == *(const DWORD*)param;
+	bool (*matcher)(const PROCESSENTRY32&, const void*) = [](const PROCESSENTRY32& pe32, const void* param) -> bool {
+		return pe32.th32ProcessID == *(const DWORD*)param;
 	};
 
 	return findProcessEntry(matcher, &dwPID);
 }
 
-HANDLE ProcMonitor::getProcess(DWORD dwPID) {
+HANDLE ProcMonitor::openProcess(DWORD dwPID) {
+	if (dwPID == 0) {
+		throw "Invalid dwPID for openProcess";
+	}
 	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPID);
 
 	if (hProcess == NULL) {
@@ -122,7 +128,18 @@ HANDLE ProcMonitor::getProcess(DWORD dwPID) {
 	return hProcess;
 }
 
-std::unordered_map<std::string, LPVOID> ProcMonitor::getModules(HANDLE hProcess, MODULEENTRY32* me32) {
+HANDLE ProcMonitor::openProcess(PROCESSENTRY32 pe32) {
+	if (pe32.th32ProcessID == 0) {
+		throw "Invalid PROCESSENTRY32 for openProcess";
+	}
+	return openProcess(pe32.th32ProcessID);
+}
+
+int ProcMonitor::closeProcess(HANDLE hProcess) {
+	return CloseHandle(hProcess);
+}
+
+std::unordered_map<std::string, LPVOID> ProcMonitor::getModules(HANDLE hProcess) {
 
 	std::unordered_map<std::string, LPVOID> modules;
 
@@ -133,13 +150,14 @@ std::unordered_map<std::string, LPVOID> ProcMonitor::getModules(HANDLE hProcess,
 		return modules;
 	}
 
-	me32->dwSize = sizeof(MODULEENTRY32);
+	MODULEENTRY32 me32;
+	me32.dwSize = sizeof(MODULEENTRY32);
 
 	// 遍历所有模块
-	if (Module32First(hModuleSnap, me32)) {
+	if (Module32First(hModuleSnap, &me32)) {
 		do {
-			modules.insert({(std::string)me32->szModule, me32->modBaseAddr});
-		} while (Module32Next(hModuleSnap, me32));
+			modules.insert({(std::string)me32.szModule, me32.modBaseAddr});
+		} while (Module32Next(hModuleSnap, &me32));
 	} else {
 		printf("Module32First failed: %lu\n", GetLastError());
 	}

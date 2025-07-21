@@ -33,12 +33,22 @@ class DLLMonitor {
 	static DWORD release(HANDLE hProcess, HMODULE hKERNEL32, LPVOID injectedModule);
 
 	/**
+	 * @brief release中介, 重载函数使用
+	 * @param dwPID 		    dw = dword
+	 * @param injectedModule    已注入的模块句柄
+	 * @return DWORD 		    成功返回 0，失败返回错误码
+	 */
+	static DWORD release(HANDLE hProcess, LPVOID injectedModule);
+
+	/**
 	 * @brief release升级版, 自动解析
 	 * @param dwPID 		    dw = dword
 	 * @param injectedModule    已注入的模块句柄
 	 * @return DWORD 		    成功返回 0，失败返回错误码
 	 */
-	static DWORD release(PROCESSENTRY32 pe32, LPVOID injectedModule);
+	static DWORD release(HANDLE hProcess, LPCTSTR szDllPath);
+
+	static DWORD release(PROCESSENTRY32 pe32, LPCTSTR szDllPath);
 };
 
 #endif // DLLMONITOR_H

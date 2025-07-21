@@ -7,7 +7,7 @@ bool SetPrivilege(LPCTSTR lpszPrivilege, bool bEnablePrivilege) {
 	if (!OpenProcessToken(GetCurrentProcess(),
 						  TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
 						  &hToken)) {
-		printf("SetPrivilege -> OpenProcessToken error: %lu\n", GetLastError());
+
 		return FALSE;
 	}
 
@@ -16,7 +16,7 @@ bool SetPrivilege(LPCTSTR lpszPrivilege, bool bEnablePrivilege) {
 							  lpszPrivilege, // privilege to lookup
 							  &luid))		 // receives LUID of privilege
 	{
-		printf("SetPrivilege -> LookupPrivilegeValue error: %lu\n", GetLastError());
+
 		return FALSE;
 	}
 
@@ -34,12 +34,12 @@ bool SetPrivilege(LPCTSTR lpszPrivilege, bool bEnablePrivilege) {
 							   sizeof(TOKEN_PRIVILEGES),
 							   (PTOKEN_PRIVILEGES)NULL,
 							   (PDWORD)NULL)) {
-		printf("AdjustTokenPrivileges error: %lu\n", GetLastError());
+
 		return FALSE;
 	}
 
 	if (GetLastError() == ERROR_NOT_ALL_ASSIGNED) {
-		printf("The token does not have the specified privilege. \n");
+
 		return FALSE;
 	}
 
