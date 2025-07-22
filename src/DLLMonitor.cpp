@@ -32,7 +32,7 @@ DWORD DLLMonitor::inject(HANDLE hProcess, HMODULE hKERNEL32, LPCTSTR szDllPath) 
 	return check;
 }
 
-DWORD DLLMonitor::inject(PROCESSENTRY32 pe32, LPCTSTR szDllPath) {
+DWORD DLLMonitor::inject(const PROCESSENTRY32& pe32, LPCTSTR szDllPath) {
 	HANDLE hProcess = ProcMonitor::openProcess(pe32.th32ProcessID);
 	HMODULE hKERNEL32 = GetModuleHandleA("KERNEL32.DLL");
 	DWORD ret = inject(hProcess, hKERNEL32, szDllPath);
@@ -73,7 +73,7 @@ DWORD DLLMonitor::release(HANDLE hProcess, LPCTSTR szDllPath) {
 	return ret;
 }
 
-DWORD DLLMonitor::release(PROCESSENTRY32 pe32, LPCTSTR szDllPath) {
+DWORD DLLMonitor::release(const PROCESSENTRY32& pe32, LPCTSTR szDllPath) {
 	HANDLE hProcess = ProcMonitor::openProcess(pe32.th32ProcessID);
 
 	DWORD ret = release(hProcess, szDllPath);

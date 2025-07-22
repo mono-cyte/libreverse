@@ -22,7 +22,7 @@ class DLLMonitor {
 	 * @param szDllPath DLL路径
 	 * @return DWORD 成功返回 0，失败返回错误码
 	 */
-	static DWORD inject(PROCESSENTRY32 pe32, LPCTSTR szDllPath);
+	static DWORD inject(const PROCESSENTRY32& pe32, LPCTSTR szDllPath);
 
 	/**
 	 * @brief 创建远程线程, 以在目标进程中卸载DLL, 需要手动寻找模块句柄
@@ -48,7 +48,7 @@ class DLLMonitor {
 	 */
 	static DWORD release(HANDLE hProcess, LPCTSTR szDllPath);
 
-	static DWORD release(PROCESSENTRY32 pe32, LPCTSTR szDllPath);
+	static DWORD release(const PROCESSENTRY32& pe32, LPCTSTR szDllPath);
 };
 
 #endif // DLLMONITOR_H

@@ -16,20 +16,20 @@ class ProcMonitor {
 
 	static DWORD getPID(LPCTSTR szProcessName);
 
-	static std::string getPName(DWORD dwPID);
+	static std::string getPName(const DWORD& dwPID);
 
 	static PROCESSENTRY32 getProcessEntry(const char* processName);
 
-	static PROCESSENTRY32 getProcessEntry(DWORD dwPID);
+	static PROCESSENTRY32 getProcessEntry(const DWORD& dwPID);
 
 	/**
 	 * @brief 获取进程句柄, 调用后必须关闭
 	 * @param DWORD dwPID 进程ID
 	 * @return HANDLE 进程句柄
 	 */
-	static HANDLE openProcess(DWORD dwPID);
+	static HANDLE openProcess(const DWORD& dwPID);
 
-	static HANDLE openProcess(PROCESSENTRY32 pe32);
+	static HANDLE openProcess(const PROCESSENTRY32& pe32);
 
 	static int closeProcess(HANDLE hProcess);
 
@@ -48,7 +48,7 @@ class ProcMonitor {
 	 * @param dllName
 	 * @return std::string 模块基址 LPVOID
 	 */
-	static LPVOID searchModule(std::unordered_map<std::string, LPVOID> modules, std::string dllName);
+	static LPVOID searchModule(const std::unordered_map<std::string, LPVOID>& modules, std::string dllName);
 };
 
 #endif

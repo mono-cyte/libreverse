@@ -42,7 +42,7 @@ DWORD ProcMonitor::getPID(LPCTSTR szProcessName) {
 	return pe32.th32ProcessID;
 }
 
-std::string ProcMonitor::getPName(DWORD dwPID) {
+std::string ProcMonitor::getPName(const DWORD& dwPID) {
 	PROCESSENTRY32 pe32 = getProcessEntry(dwPID);
 	if (pe32.th32ProcessID == 0) {
 		return 0; // 未找到进程
@@ -81,7 +81,7 @@ PROCESSENTRY32 ProcMonitor::getProcessEntry(const char* processName) {
 	return findProcessEntry(matcher, processName);
 }
 
-PROCESSENTRY32 ProcMonitor::getProcessEntry(DWORD dwPID) {
+PROCESSENTRY32 ProcMonitor::getProcessEntry(const DWORD& dwPID) {
 	// PROCESSENTRY32 pe32;
 	// pe32.dwSize = sizeof(PROCESSENTRY32); // 必须初始化结构体大小
 
@@ -113,7 +113,7 @@ PROCESSENTRY32 ProcMonitor::getProcessEntry(DWORD dwPID) {
 	return findProcessEntry(matcher, &dwPID);
 }
 
-HANDLE ProcMonitor::openProcess(DWORD dwPID) {
+HANDLE ProcMonitor::openProcess(const DWORD& dwPID) {
 	if (dwPID == 0) {
 		throw "Invalid dwPID for openProcess";
 	}
@@ -128,7 +128,7 @@ HANDLE ProcMonitor::openProcess(DWORD dwPID) {
 	return hProcess;
 }
 
-HANDLE ProcMonitor::openProcess(PROCESSENTRY32 pe32) {
+HANDLE ProcMonitor::openProcess(const PROCESSENTRY32& pe32) {
 	if (pe32.th32ProcessID == 0) {
 		throw "Invalid PROCESSENTRY32 for openProcess";
 	}
@@ -166,10 +166,11 @@ std::unordered_map<std::string, LPVOID> ProcMonitor::getModules(HANDLE hProcess)
 	return modules;
 }
 
-LPVOID ProcMonitor::searchModule(std::unordered_map<std::string, LPVOID> modules, std::string dllName) {
+LPVOID ProcMonitor::searchModule(const std::unordered_map<std::string, LPVOID>& modules, std::string dllName) {
 	{
-		if (modules.find(dllName) != modules.end()) {
-			return modules[dllName];
+		auto it = modules.find(dllName);
+		if (it != modules.end()) {
+			return it->second;
 		}
 		return nullptr;
 	}
